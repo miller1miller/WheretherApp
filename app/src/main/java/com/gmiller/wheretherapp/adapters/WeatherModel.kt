@@ -4,6 +4,7 @@ data class WeatherModel(
     val city: String,
     val time: String,
     val condition: String,
+    val isDay: String,
     val currentTemp: String,
     val TempSymbol: String,
     val maxTemp: String,

@@ -1,14 +1,19 @@
 package com.gmiller.wheretherapp.adapters
 
+import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.gmiller.wheretherapp.R
 import com.gmiller.wheretherapp.databinding.ListItemBinding
 import com.squareup.picasso.Picasso
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class WeatherAdapter(val listener: Listener?) : ListAdapter<WeatherModel, WeatherAdapter.Holder>(Comparator()) {
 
@@ -23,6 +28,7 @@ class WeatherAdapter(val listener: Listener?) : ListAdapter<WeatherModel, Weathe
             }
         }
 
+        @RequiresApi(Build.VERSION_CODES.O)
         fun bind(item: WeatherModel) = with(binding){
             itemTemp = item
             val cTemp = "${item.currentTemp.ifEmpty { "max: ${item.maxTemp}° / min: ${item.minTemp}" }}°"
@@ -48,6 +54,7 @@ class WeatherAdapter(val listener: Listener?) : ListAdapter<WeatherModel, Weathe
         return Holder(view, listener)
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onBindViewHolder(holder: Holder, position: Int) {
         holder.bind(getItem(position))
     }

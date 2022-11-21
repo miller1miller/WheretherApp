@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.LocationManager
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
@@ -15,7 +16,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
+import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.activityViewModels
@@ -29,15 +30,16 @@ import com.gmiller.wheretherapp.adapters.VpAdapter
 import com.gmiller.wheretherapp.adapters.WeatherModel
 import com.gmiller.wheretherapp.databinding.FragmentMainBinding
 import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.android.material.tabs.TabLayoutMediator
 import com.squareup.picasso.Picasso
 import org.json.JSONObject
-import java.security.Permission
-const val API_KEY = "413eb57bc9ab4e14bae170232223010"
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
+const val API_KEY = "f4dc8c97fa3a49c48bc123845222111"
 class MainFragment : Fragment() {
     private lateinit var fLocationClient: FusedLocationProviderClient
     private val fLIst = listOf(
@@ -60,17 +62,21 @@ class MainFragment : Fragment() {
         return binding.root
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         checkPermission()
         init()
         updateCurrentCard()
+        updateBackground()
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onResume() {
         super.onResume()
         checkLocation()
         updateCurrentCard()
+        updateBackground()
     }
 
     private fun init() = with(binding){
@@ -129,18 +135,30 @@ class MainFragment : Fragment() {
             }
     }
 
+
+    private fun updateBackground() = with(binding){
+        model.liveDataCurrent.observe(viewLifecycleOwner){
+            val bgIm = it.isDay
+            val imBg = if(bgIm == "0") R.drawable.night_sky else R.drawable.background_image
+            imBackground.setImageResource(imBg)
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun updateCurrentCard() = with(binding){
         model.liveDataCurrent.observe(viewLifecycleOwner){
             val maxMinTemp = "Max: ${it.maxTemp}°/Min: ${it.minTemp}°"
             val cTemp = it.currentTemp
-            tvCurrentDate.text = it.time
+            val currentTime = LocalDateTime.now()
+            val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
+            val formattedTime = currentTime.format(formatter)
+            tvCurrentDate.text = formattedTime.toString()
             tvCity.text = it.city
             tvCurrentTemp.text = cTemp.ifEmpty { "${it.maxTemp}°/ ${it.minTemp}°" }
             tvTempSymbol.text = if(it.currentTemp.isEmpty()) "" else "°"
             tvCondition.text = it.condition
             tvMaxMin.text = if(it.currentTemp.isEmpty()) "" else maxMinTemp
             Picasso.get().load("https:"+it.imageUrl).into(imWeather)
-
         }
     }
 
@@ -199,7 +217,7 @@ class MainFragment : Fragment() {
                 name,
                 day.getString("date"),
                 day.getJSONObject("day").getJSONObject("condition")
-                    .getString("text"),
+                    .getString("text"), "",
                 "","",
                 day.getJSONObject("day").getString("maxtemp_c").toFloat().toInt().toString(),
                 day.getJSONObject("day").getString("mintemp_c").toFloat().toInt().toString(),
@@ -223,6 +241,8 @@ class MainFragment : Fragment() {
             mainObject.getJSONObject("current")
                 .getJSONObject("condition").getString("text"),
             mainObject.getJSONObject("current")
+                .getString("is_day").toInt().toString(),
+            mainObject.getJSONObject("current")
                 .getString("temp_c").toFloat().toInt().toString(),
             "",
             weatherItem.maxTemp.toFloat().toInt().toString(),
@@ -236,7 +256,6 @@ class MainFragment : Fragment() {
         model.liveDataCurrent.value = item
 
     }
-
 
     companion object {
         @JvmStatic

@@ -12,7 +12,7 @@
         <item name="android:windowActionBar">false</item>
         <item name="android:windowNoTitle">true</item>
         <!-- Status bar color. -->
-        <item name="android:statusBarColor">@color/card_blue_bg_2</item>
+        <item name="android:statusBarColor">@color/card_blue_bg_night</item>
         <!-- Customize your theme here. -->
     </style>
     <style name="MyCustomTextAppearance" parent="@android:style/TextAppearance.Widget.TabWidget">
